@@ -20,7 +20,8 @@ my $server = IO::Socket::UNIX->new(
     Listen => 1,
 );
 
-my $count = 1;
+chmod(0750, $sockpath);
+
 while (my $conn = $server->accept()) {
     $conn->print("HTTP/1.1 200 OK\r\n");
     $conn->print("Content-Type: text/plain\r\n\r\n");
