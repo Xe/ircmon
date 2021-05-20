@@ -36,5 +36,3 @@ while (my $conn = $server->accept()) {
 
     $conn->shutdown(SHUT_WR);
 }
-
-

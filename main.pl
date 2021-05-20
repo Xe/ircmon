@@ -70,12 +70,12 @@ do: while(my $line=<$cl>) {
         print "PONG $1\n";
     }
 
-    if ($line =~ /005/) {
+    if ($line =~ /^:\S+ 005/) {
         print $cl "JOIN #xeserv\r\n";
         $reg = 1;
     }
 
-    if ($line =~ /266 \S+ ([0-9]+) ([0-9]+).*/) {
+    if ($line =~ /^:\S+ 266 \S+ ([0-9]+) ([0-9]+).*/) {
         my $now = time();
         $update->execute($servername, $now, $1, $2);
         print "$servername,$now,$1,$2\n";
