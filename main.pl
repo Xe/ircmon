@@ -1,3 +1,6 @@
+#!/usr/bin/env nix-shell
+#! nix-shell -p perl -i perl -p perl532Packages.DBI -p perl532Packages.DBDSQLite -p perl532Packages.Dotenv -p perl532Packages.IOSocketSSL
+
 use strict;
 use warnings;
 
@@ -9,10 +12,11 @@ Dotenv->load(".env");
 
 my $servername = $ENV{"SERVERNAME"};
 my $password = $ENV{"PASSWORD"};
-my $nick = "xe-ircmon";
+my $nick = "Xe-ircmon";
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=./ircmon.db", "", "", { RaiseError => 1 });
-my $migration = $dbh->prepare(q{
+$dbh->{sqlite_see_if_its_a_number} = 1;
+$dbh->do(q{
 CREATE TABLE IF NOT EXISTS stats
     ( server_name TEXT
     , time        INTEGER
@@ -20,7 +24,6 @@ CREATE TABLE IF NOT EXISTS stats
     , max         INTEGER
     );
 });
-$migration->execute();
 my $update = $dbh->prepare("INSERT INTO stats(server_name, time, current, max) VALUES (?, ?, ?, ?)");
 
 my $cl = IO::Socket::SSL->new(
@@ -39,10 +42,18 @@ print $cl "PING :foobar$servername\r\n";
 
 print "servername,time,current,max\n";
 
+my $last = 0;
+
 do: while(my $line=<$cl>) {
+    if ($last + 600 >= time()) {
+        $last = time();
+        print $cl "USERS\r\n";
+    }
+
+    print $line;
+
     if ($line =~ /^PING(.*)$/i) {
         print $cl "PONG $1\r\n";
-        print $cl "USERS\r\n";
     }
 
     if ($line =~ /005/) {
@@ -55,6 +66,27 @@ do: while(my $line=<$cl>) {
         print "$servername,$now,$1,$2\n";
     }
 
-    print $line;
+    if ($line =~ /:(.*)!.*@(\S+) PRIVMSG (\S+) :(.*)/) {
+        my $nick = $1;
+        my $host = $2;
+        my $target = $3;
+        my $command = $4;
+
+        print "$target ($nick) $command";
+
+        if ($nick eq "Xe" and $host eq "user/xe" and $target eq "#xeserv" and $command =~ /!die (.*)$/) {
+            print $cl "QUIT :$1";
+            die $1;
+        }
+
+        if ($command =~ /^!stats/) {
+            my $status = $dbh->prepare("SELECT time, current, max FROM stats ORDER BY rowid DESC LIMIT 1 WHERE server_name = ?");
+            $status->execute($servername);
+            while (my @row = $status->fetchrow_array) {
+                my $now = localtime($row[0]);
+                print $cl "PRIVMSG $target :As of $now there are $row[1] users in $servername ($row[2] max)\r\n";
+            }
+        }
+    }
 }
 
