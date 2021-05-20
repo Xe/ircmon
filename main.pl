@@ -43,6 +43,7 @@ print $cl "PING :foobar$servername\r\n";
 print "servername,time,current,max\n";
 
 my $last = 0;
+my $reg = 0;
 
 my $timeq = $dbh->prepare("SELECT time FROM stats WHERE server_name = ? ORDER BY rowid DESC LIMIT 1");
 $timeq->execute($servername);
@@ -51,19 +52,27 @@ while (my @row = $timeq->fetchrow_array) {
 }
 
 do: while(my $line=<$cl>) {
-    if ($last + 200 >= time()) {
-        $last = time();
+    my $now = time();
+    if ($last + 200 <= time() and $reg == 1) {
+        print "sending USERS $last $now\n";
         print $cl "USERS\r\n";
+        $last = time();
+    }
+
+    if ($line =~ /^ERROR :(.*)$/i) {
+        die $1;
     }
 
     print $line;
 
     if ($line =~ /^PING(.*)$/i) {
         print $cl "PONG $1\r\n";
+        print "PONG $1\n";
     }
 
     if ($line =~ /005/) {
         print $cl "JOIN #xeserv\r\n";
+        $reg = 1;
     }
 
     if ($line =~ /266 \S+ ([0-9]+) ([0-9]+).*/) {
