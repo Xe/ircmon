@@ -20,7 +20,7 @@ my $server = IO::Socket::UNIX->new(
     Listen => 1,
 );
 
-chmod(0750, $sockpath);
+chmod(0777, $sockpath);
 
 while (my $conn = $server->accept()) {
     $conn->print("HTTP/1.1 200 OK\r\n");
