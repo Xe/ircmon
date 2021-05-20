@@ -44,14 +44,14 @@ print "servername,time,current,max\n";
 
 my $last = 0;
 
-my $timeq = $dbh->prepare("SELECT time FROM stats ORDER BY rowid DESC LIMIT 1 WHERE server_name = ?");
+my $timeq = $dbh->prepare("SELECT time FROM stats WHERE server_name = ? ORDER BY rowid DESC LIMIT 1");
 $timeq->execute($servername);
 while (my @row = $timeq->fetchrow_array) {
     $last = $row[0];
 }
 
 do: while(my $line=<$cl>) {
-    if ($last + 600 >= time()) {
+    if ($last + 200 >= time()) {
         $last = time();
         print $cl "USERS\r\n";
     }
@@ -90,7 +90,7 @@ do: while(my $line=<$cl>) {
         }
 
         if ($command =~ /^!stats/) {
-            my $status = $dbh->prepare("SELECT time, current, max FROM stats ORDER BY rowid DESC LIMIT 1 WHERE server_name = ?");
+            my $status = $dbh->prepare("SELECT time, current, max FROM stats WHERE server_name = ? ORDER BY rowid DESC LIMIT 1");
             $status->execute($servername);
             while (my @row = $status->fetchrow_array) {
                 my $now = localtime($row[0]);
