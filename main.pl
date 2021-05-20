@@ -1,4 +1,4 @@
-#!/usr/bin/env nix-shell
+#!/usr/bin/env perl
 #! nix-shell -p perl -i perl -p perl532Packages.DBI -p perl532Packages.DBDSQLite -p perl532Packages.Dotenv -p perl532Packages.IOSocketSSL
 
 use strict;
