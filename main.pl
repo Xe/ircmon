@@ -44,6 +44,12 @@ print "servername,time,current,max\n";
 
 my $last = 0;
 
+my $timeq = $dbh->prepare("SELECT time FROM stats ORDER BY rowid DESC LIMIT 1 WHERE server_name = ?");
+$timeq->execute($servername);
+while (my @row = $timeq->fetchrow_array) {
+    $last = $row[0];
+}
+
 do: while(my $line=<$cl>) {
     if ($last + 600 >= time()) {
         $last = time();
@@ -80,7 +86,7 @@ do: while(my $line=<$cl>) {
         }
 
         if ($command =~ /^!source/) {
-            print $cl "PRIVMSG $target :https://github.com/Xe/ircmon";
+            print $cl "PRIVMSG $target :https://github.com/Xe/ircmon\r\n";
         }
 
         if ($command =~ /^!stats/) {
