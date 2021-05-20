@@ -79,6 +79,10 @@ do: while(my $line=<$cl>) {
             die $1;
         }
 
+        if ($command =~ /^!source/) {
+            print $cl "PRIVMSG $target :https://github.com/Xe/ircmon";
+        }
+
         if ($command =~ /^!stats/) {
             my $status = $dbh->prepare("SELECT time, current, max FROM stats ORDER BY rowid DESC LIMIT 1 WHERE server_name = ?");
             $status->execute($servername);
