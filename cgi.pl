@@ -24,7 +24,7 @@ chmod(0777, $sockpath);
 
 while (my $conn = $server->accept()) {
     $conn->autoflush;
-    $conn->print("HTTP/1.1 200 OK\r\n");
+    $conn->print("HTTP/1.0 200 OK\r\n");
     $conn->print("Content-Type: text/plain\r\n\r\n");
 
     my $servername = "irc.libera.chat";
