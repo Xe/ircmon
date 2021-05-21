@@ -23,18 +23,25 @@ my $server = IO::Socket::UNIX->new(
 chmod(0777, $sockpath);
 
 while (my $conn = $server->accept()) {
-    $conn->autoflush;
-    $conn->print("HTTP/1.0 200 OK\r\n");
-    $conn->print("Content-Type: text/plain\r\n\r\n");
-
     my $servername = "irc.libera.chat";
     $status->execute($servername);
+
+    my $buf = "";
+
     while (my @row = $status->fetchrow_array) {
         my $then = localtime($row[0]);
-        $conn->print("# as of $then\n");
-        $conn->print("ircmon_current_connections{\"$servername\"} $row[1]\n");
-        $conn->print("ircmon_max_connections{\"$servername\"} $row[2]\n");
+        $buf .= "# as of $then\n";
+        $buf .= "ircmon_current_connections{\"$servername\"} $row[1]\n";
+        $buf .= "ircmon_max_connections{\"$servername\"} $row[2]\n";
     }
+
+    my $len = length $buf;
+
+    $conn->autoflush;
+    $conn->print("HTTP/1.1 200 OK\r\n");
+    $conn->print("Content-Length: $len\r\n");
+    $conn->print("Content-Type: text/plain\r\n\r\n");
+    $conn->print($buf);
 
     $conn->flush;
     $conn->shutdown(SHUT_WR);
