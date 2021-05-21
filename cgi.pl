@@ -23,6 +23,7 @@ my $server = IO::Socket::UNIX->new(
 chmod(0777, $sockpath);
 
 while (my $conn = $server->accept()) {
+    $conn->autoflush;
     $conn->print("HTTP/1.1 200 OK\r\n");
     $conn->print("Content-Type: text/plain\r\n\r\n");
 
@@ -35,5 +36,6 @@ while (my $conn = $server->accept()) {
         $conn->print("ircmon_max_connections{\"$servername\"} $row[2]\n");
     }
 
+    $conn->flush;
     $conn->shutdown(SHUT_WR);
 }
