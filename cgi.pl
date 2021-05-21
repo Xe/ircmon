@@ -31,8 +31,8 @@ while (my $conn = $server->accept()) {
     while (my @row = $status->fetchrow_array) {
         my $then = localtime($row[0]);
         $buf .= "# as of $then\n";
-        $buf .= "ircmon_current_connections{\"$servername\"} $row[1]\n";
-        $buf .= "ircmon_max_connections{\"$servername\"} $row[2]\n";
+        $buf .= "ircmon_current_connections{net=\"$servername\"} $row[1]\n";
+        $buf .= "ircmon_max_connections{net=\"$servername\"} $row[2]\n";
     }
 
     my $len = length $buf;
